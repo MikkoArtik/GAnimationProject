@@ -21,26 +21,29 @@ class InterpolationParameter(NamedTuple):
     time_lim: Limit
     cell_size: float
     buffer_distance: float
-    
+
 
 class Dataset:
     def __init__(self, path: str, columns: ColumnIndex, delimiter: str,
                  skip_rows_count: int):
-        data = np.loadtxt(path, skiprows=skip_rows_count, delimiter=delimiter,
-                          usecols=[columns.time, columns.x, columns.y,
-                                   columns.z, columns.density])
-        self.__src_data = data
+        self.__src_data = np.loadtxt(
+            path, skiprows=skip_rows_count, delimiter=delimiter,
+            usecols=[columns.time, columns.x, columns.y, columns.z,
+                     columns.density]
+        )
 
     @property
     def src_data(self) -> np.ndarray:
         return self.__src_data
 
     def get_clear_data(self) -> np.ndarray:
-        hash_val = set()
+        hash_vals = set()
         clear_array = np.zeros(shape=(0, len(ColumnIndex)))
         for time, x, y, z, dens in self.src_data:
-            if (time, x, y, z) not in hash_val:
+            current_hash = hash((time, x, y, z))
+            if current_hash not in hash_vals:
                 clear_array = np.vstack((clear_array, [time, x, y, z, dens]))
+                hash_vals.add(current_hash)
         return clear_array
 
 
